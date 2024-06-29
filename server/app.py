@@ -17,9 +17,10 @@ db.init_app(app)
 @app.route('/messages', methods=["GET", "POST"])
 def messages():
     if request.method == "GET":
-        for message in Message.query.order_by(Message.created_at.asc).all():
-            message_dict = [message.to_dict() for message in message.messages]
-            return make_response(jsonify(message_dict), 200)
+        messages = Message.query.order_by(Message.created_at.asc).all()
+        message_dict = [message.to_dict() for message in messages]
+        return make_response(jsonify(message_dict), 200)
+    
     elif request.method == "POST":
          data = request.get_json()
          body = data.get("body")
@@ -36,6 +37,10 @@ def messages():
 
 @app.route('/messages/<int:id>', methods =["DELETE", "PATCH"])
 def messages_by_id(id):
+    message = db.session.get(Message, id)
+    if not message:
+        return make_response({"error":"Message not found"}, 404)
+    
     if request.method == "DELETE":
         message = Message.query.get_or_404(id)
         db.session.delete(message)
